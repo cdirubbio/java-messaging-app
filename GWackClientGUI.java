@@ -32,6 +32,14 @@ public class GWackClientGUI extends JFrame {
         JTextField portTextField = new JTextField(10);
 
         JButton connOrDisconnButton = new JButton("Connect");
+        connOrDisconnButton.addActionListener((e) -> {
+            if (connOrDisconnButton.getText().equals("Connect")) {
+                connOrDisconnButton.setText("Disconnect");
+            }else {
+                connOrDisconnButton.setText("Connect");
+            }
+        });
+
 
         // Bottom! ! !! ! ! ! !
         JLabel membersOnlineLabel = new JLabel("Members Online");
