@@ -3,9 +3,9 @@ import javax.swing.*;
 import java.awt.event.*;
 
 public class GWackClientGUI extends JFrame {
+    public static String secretKey = "3c3c4ac618656ae32b7f3431e75f7b26b1a14a87";
 
-    public static void main(String[] args) {
-
+    public GWackClientGUI() {
         JFrame f = new JFrame("GWACK -- Slack Simulator (disconnected)");
         f.setSize(800, 355);
         f.setLocation(220,400);
@@ -88,6 +88,12 @@ public class GWackClientGUI extends JFrame {
         f.add(fullBorderPanel);
 
         f.setVisible(true);
+    }
+    public static void main(String[] args) {
+        GWackClientGUI clientGUI = new GWackClientGUI();
+        // You will use the Print writer code to do the following things:
+        // Gotrta send the secret,
+        // And send the messages
     }
 
 }
