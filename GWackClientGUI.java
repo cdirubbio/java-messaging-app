@@ -1,14 +1,46 @@
 import java.awt.*;
 import javax.swing.*;
 import java.awt.event.*;
+import java.io.*;
 
 public class GWackClientGUI extends JFrame {
-    public static String secretKey = "3c3c4ac618656ae32b7f3431e75f7b26b1a14a87";
+    public JFrame f;
+
+    public JTextField clientName;
+    public JTextField ipaddressField;
+    public JTextField portField;
+    public JTextArea membersTextArea;
+    public JTextArea messagesTextArea;
+    public JTextArea composeTextArea;
+
+    public ClientNetworking cN;
+
+    public String getHost() {
+        return this.ipaddressField.getText();
+    }
+
+    public String getGUIName() {
+        return this.clientName.getText();
+    }
+
+    public int getPort() {
+        if (portField.getText() == "") {
+            return 0;
+        }
+        return Integer.valueOf((String) portField.getText());
+    }
+
+    public JTextArea getMembersTextArea() {
+        return this.membersTextArea;
+    }
+    public JTextArea getDisplayTextArea() {
+        return this.messagesTextArea;
+    }
 
     public GWackClientGUI() {
-        JFrame f = new JFrame("GWACK -- Slack Simulator (disconnected)");
+        f = new JFrame("GWACK -- Slack Simulator (disconnected)");
         f.setSize(800, 355);
-        f.setLocation(220,400);
+        f.setLocation(220, 400);
         f.setLocationRelativeTo(null);
         f.setResizable(false);
 
@@ -20,38 +52,26 @@ public class GWackClientGUI extends JFrame {
         fullBorderPanel.add(bottomBorderPanel, BorderLayout.CENTER);
         JPanel bottomRightStackPanel = new JPanel(new BorderLayout(0, 50));
 
-
         // Top row
         JLabel nameLabel = new JLabel("Name");
-        JTextField nameTextField = new JTextField(10);
-
+        clientName = new JTextField(10);
         JLabel ipAddressLabel = new JLabel("IP Address");
-        JTextField ipAddressTextField = new JTextField(10);
-
+        ipaddressField = new JTextField(10);
         JLabel portLabel = new JLabel("Port");
-        JTextField portTextField = new JTextField(10);
-
+        portField = new JTextField(10);
         JButton connOrDisconnButton = new JButton("Connect");
-        connOrDisconnButton.addActionListener((e) -> {
-            if (connOrDisconnButton.getText().equals("Connect")) {
-                connOrDisconnButton.setText("Disconnect");
-            }else {
-                connOrDisconnButton.setText("Connect");
-            }
-        });
-
 
         // Bottom! ! !! ! ! ! !
         JLabel membersOnlineLabel = new JLabel("Members Online");
-        JTextArea membersOnlineTextArea = new JTextArea(5, 13);
-        membersOnlineTextArea.setEditable(false);
+        membersTextArea = new JTextArea(5, 13);
+        membersTextArea.setEditable(false);
         JPanel membersBox = new JPanel();
         membersBox.setLayout(new BoxLayout(membersBox, BoxLayout.Y_AXIS));
         membersBox.add(membersOnlineLabel);
-        membersBox.add(membersOnlineTextArea);
+        membersBox.add(membersTextArea);
 
         JLabel messagesLabel = new JLabel("Messages");
-        JTextArea messagesTextArea = new JTextArea(10, 25);
+        messagesTextArea = new JTextArea(10, 25);
         messagesTextArea.setEditable(false);
         JPanel messagesBox = new JPanel();
         messagesBox.setLayout(new BoxLayout(messagesBox, BoxLayout.Y_AXIS));
@@ -59,27 +79,25 @@ public class GWackClientGUI extends JFrame {
         messagesBox.add(messagesTextArea);
 
         JLabel composeLabel = new JLabel("Compose");
-        JTextArea composeTextArea = new JTextArea(4, 25);
-        JPanel composeBox = new JPanel();
-        composeBox.setLayout(new BoxLayout(composeBox, BoxLayout.Y_AXIS));
-        composeBox.add(composeLabel);
-        composeBox.add(composeTextArea);
+        composeTextArea = new JTextArea(4, 25);
+        JPanel composeBox = new JPanel(new BorderLayout()); // Use BorderLayout
+        composeBox.add(composeLabel, BorderLayout.NORTH); // Add label to the top
+        composeBox.add(composeTextArea, BorderLayout.CENTER); // Add text area to the center
 
         JPanel bottomSendButtonPanel = new JPanel(new BorderLayout(0, 0));
         JButton sendButton = new JButton("Send");
         bottomSendButtonPanel.add(sendButton, BorderLayout.EAST);
         fullBorderPanel.add(bottomSendButtonPanel, BorderLayout.SOUTH);
 
-
         bottomRightStackPanel.add(messagesBox, BorderLayout.NORTH);
         bottomRightStackPanel.add(composeBox, BorderLayout.SOUTH);
 
         topRowPanel.add(nameLabel);
-        topRowPanel.add(nameTextField);
+        topRowPanel.add(clientName);
         topRowPanel.add(ipAddressLabel);
-        topRowPanel.add(ipAddressTextField);
+        topRowPanel.add(ipaddressField);
         topRowPanel.add(portLabel);
-        topRowPanel.add(portTextField);
+        topRowPanel.add(portField);
         topRowPanel.add(connOrDisconnButton);
 
         bottomBorderPanel.add(membersBox, BorderLayout.WEST);
@@ -88,9 +106,46 @@ public class GWackClientGUI extends JFrame {
         f.add(fullBorderPanel);
 
         f.setVisible(true);
+        // Action Listeners
+        connOrDisconnButton.addActionListener((e) -> {
+            if (connOrDisconnButton.getText().equals("Connect")) {
+                cN = new ClientNetworking(this.getGUIName(), this.getHost(), this.getPort(), this);
+                cN.connect(getPort());
+                connOrDisconnButton.setText("Disconnect");
+            } else if (connOrDisconnButton.getText().equals("Disconnect") && cN.getSocket().isConnected()) {
+                try {
+                    cN.getSocket().close();
+                    connOrDisconnButton.setText("Connect");
+                } catch (Exception err) {
+                    System.err.println("Couldnt close socket");
+                }
+            }
+        });
+
     }
+
+    public void updateClientList(BufferedReader in) {
+        try {
+            String clientList = "";
+            String next = in.readLine();
+            while (next != "END_CLIENT_LIST") {
+                clientList += next + "\n";
+            }
+            membersTextArea.setText(clientList);
+        } catch (Exception err) {}
+    }
+
+    // UPDATE MESSAGES
+    public void appendNewMessage(String message) {
+        String currentMessages = messagesTextArea.getText();
+        currentMessages += "\n" + message;
+        messagesTextArea.setText(currentMessages);
+    }
+
     public static void main(String[] args) {
         GWackClientGUI clientGUI = new GWackClientGUI();
+        // ClientNetworking cN = new ClientNetworking(clientGUI.getGUIName(),
+        // clientGUI.getHost(), clientGUI.getPort(), clientGUI);
         // You will use the Print writer code to do the following things:
         // Gotrta send the secret,
         // And send the messages
