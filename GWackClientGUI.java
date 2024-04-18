@@ -33,16 +33,22 @@ public class GWackClientGUI extends JFrame {
     public JTextArea getMembersTextArea() {
         return this.membersTextArea;
     }
+
     public JTextArea getDisplayTextArea() {
         return this.messagesTextArea;
+    }
+
+    // UPDATE MESSAGES
+    public void appendNewMessage(String message) {
+        String currentMessages = messagesTextArea.getText();
+        currentMessages += message + "\n";
+        messagesTextArea.setText(currentMessages);
     }
 
     public GWackClientGUI() {
         f = new JFrame("GWACK -- Slack Simulator (disconnected)");
         f.setSize(800, 355);
         f.setLocation(220, 400);
-        f.setLocationRelativeTo(null);
-        f.setResizable(false);
 
         JPanel fullBorderPanel = new JPanel(new BorderLayout());
         JPanel topRowPanel = new JPanel(new FlowLayout());
@@ -74,9 +80,10 @@ public class GWackClientGUI extends JFrame {
         messagesTextArea = new JTextArea(10, 25);
         messagesTextArea.setEditable(false);
         JPanel messagesBox = new JPanel();
-        messagesBox.setLayout(new BoxLayout(messagesBox, BoxLayout.Y_AXIS));
-        messagesBox.add(messagesLabel);
-        messagesBox.add(messagesTextArea);
+        messagesBox.setLayout(new BorderLayout());
+        messagesBox.add(messagesLabel, BorderLayout.NORTH);
+        messagesBox.add(messagesTextArea, BorderLayout.SOUTH);
+
 
         JLabel composeLabel = new JLabel("Compose");
         composeTextArea = new JTextArea(4, 25);
@@ -110,11 +117,14 @@ public class GWackClientGUI extends JFrame {
         connOrDisconnButton.addActionListener((e) -> {
             if (connOrDisconnButton.getText().equals("Connect")) {
                 cN = new ClientNetworking(this.getGUIName(), this.getHost(), this.getPort(), this);
-                cN.connect(getPort());
-                connOrDisconnButton.setText("Disconnect");
-            } else if (connOrDisconnButton.getText().equals("Disconnect") && cN.getSocket().isConnected()) {
                 try {
-                    cN.getSocket().close();
+                    cN.connect(this.getPort());
+                    connOrDisconnButton.setText("Disconnect");
+                } catch (Exception err) {
+                }
+            } else if (connOrDisconnButton.getText().equals("Disconnect")) {
+                try {
+                    cN.disconnect();
                     connOrDisconnButton.setText("Connect");
                 } catch (Exception err) {
                     System.err.println("Couldnt close socket");
@@ -122,24 +132,12 @@ public class GWackClientGUI extends JFrame {
             }
         });
 
-    }
-
-    public void updateClientList(BufferedReader in) {
-        try {
-            String clientList = "";
-            String next = in.readLine();
-            while (next != "END_CLIENT_LIST") {
-                clientList += next + "\n";
-            }
-            membersTextArea.setText(clientList);
-        } catch (Exception err) {}
-    }
-
-    // UPDATE MESSAGES
-    public void appendNewMessage(String message) {
-        String currentMessages = messagesTextArea.getText();
-        currentMessages += "\n" + message;
-        messagesTextArea.setText(currentMessages);
+        // sending messages
+        sendButton.addActionListener((e) -> {
+            String messageToSend = composeTextArea.getText();
+            cN.writeMsg(messageToSend);
+            composeTextArea.setText("");
+        });
     }
 
     public static void main(String[] args) {

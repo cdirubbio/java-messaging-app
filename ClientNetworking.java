@@ -7,6 +7,7 @@ import java.io.*;
 // 8082
 // 8181
 // 8283
+
 public class ClientNetworking {
     public String secretKey = "3c3c4ac618656ae32b7f3431e75f7b26b1a14a87";
     private String name;
@@ -15,6 +16,7 @@ public class ClientNetworking {
     private GWackClientGUI gui;
 
     private NetworkThread netThread;
+    public PrintWriter pw;
 
     private Socket socket;
 
@@ -23,7 +25,6 @@ public class ClientNetworking {
         this.host = host;
         this.port = port;
         this.gui = gui;
-        netThread = new NetworkThread();
     }
 
     public String getName() {
@@ -35,12 +36,15 @@ public class ClientNetworking {
     }
 
     public void disconnect() {
+        
         try {
-            this.socket.close();
+            pw.close();
             this.gui.f.setTitle("GWACK -- Slack Simulator (disconnected)");
+            this.gui.messagesTextArea.setText("");
+            this.socket.close();
+            
         } catch (Exception e) {
         }
-
     }
 
     public Socket connect(int port) {
@@ -48,14 +52,20 @@ public class ClientNetworking {
         try {
             sock = new Socket(this.host, port);
             // send server the 4 required messages
-            writeMsg("SECRET" + "\n");
-            writeMsg(secretKey + "\n");
-            writeMsg("NAME" + "\n");
-            writeMsg(this.name + "\n");
-            this.gui.f.setTitle("GWACK -- Slack Simulator (connected)");
-            netThread.start();
+            if (sock.isConnected()) {
+                System.out.println("CONNECTED");
+                socket = sock;
+                pw = new PrintWriter(this.socket.getOutputStream());
+                sendInitialSecret();
+                this.gui.f.setTitle("GWACK -- Slack Simulator (connected)");
+                netThread = new NetworkThread(sock);
+                
+                netThread.start();
+            }
+
         } catch (Exception e) {
             System.err.println("Cannot Connect");
+            // System.err.println(e);
             // NEED ERROR MODAL HERE this.gui.
         }
         return sock;
@@ -63,46 +73,64 @@ public class ClientNetworking {
 
     public void writeMsg(String msg) {
         try {
-            PrintWriter pw = new PrintWriter(socket.getOutputStream());
             pw.println(msg);
-            pw.close();
-
+            pw.flush();
         } catch (Exception e) {
             System.err.print("IOException -- writemsg");
-            System.exit(1);
+
         }
     }
 
-    // This class should store some kind of Thread object (which you should
-    // declare inside of this class as a private class that extends Thread)
-    // which has a run method that collects messages passed down from the server
-    // and updates the GUI accordingly.
-    private class NetworkThread extends Thread {
-        // needs to be able to collect all messages from server
-        // and update GUI
-        public BufferedReader in;
+    public PrintWriter getOut() {
+        return this.pw;
+    }
 
+    public void sendInitialSecret() {
+        try {
+
+            pw.println("SECRET" + "\n" + secretKey + "\n" + "NAME" + "\n" + this.getName());
+            pw.flush();
+        } catch (Exception e) {
+            System.err.print("IOException -- sendsecret");
+            System.err.print(e);
+        }
+    }
+
+    private class NetworkThread extends Thread {
+        public BufferedReader in;
+        private Socket socket;
+
+        public NetworkThread(Socket socket) {
+            this.socket = socket;
+        }
+
+        // This is fine, sometimes
         public void run() {
             try {
-                while (socket.isConnected()) {
-                    in = new BufferedReader(
-                            new InputStreamReader(socket.getInputStream()));
-
+                if (this.socket.isConnected()) {
+                    in = new BufferedReader(new InputStreamReader(this.socket.getInputStream()));
+                }
+                while (this.socket.isConnected()) {
+                    // Thread.sleep(100000);
                     String reply = in.readLine();// read a line from ther server
                     // if we switch control flow to updating client list
-                    if (reply == "START_CLIENT_LIST") {
-
+                    if (reply.contains("START_CLIENT_LIST")) {
+                        String clientList = "";
+                        while (!(clientList.contains("END_CLIENT"))) {
+                            reply = in.readLine();
+                            System.out.println(reply);
+                            clientList += reply + "\n";
+                        }
+                        clientList = clientList.substring(0, clientList.length() - 16);
+                        gui.membersTextArea.setText(clientList);
+                        continue;
+                    } else {
+                        System.out.println(reply);
+                        gui.appendNewMessage(reply);
                     }
-
-                    // if its a mesage
-                    gui.appendNewMessage(reply);
-
-                    
-
-
                 }
             } catch (Exception e) {
-                System.err.print("IOExceptionhmhmhm");
+                System.err.print(e);
             }
         }
     }
