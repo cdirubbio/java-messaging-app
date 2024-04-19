@@ -9,14 +9,12 @@
 // The protocol for client interaction (as described above) should be observed
 
 import java.net.*;
-import java.util.ArrayList;
-import java.util.Queue;
-
+import java.util.*;
 
 public class GWackChannel {
 
     private ArrayList<ClientThread> connectedClients;
-    private Queue<String> outputQueue;
+    private Queue<String> outputQueue = new PriorityQueue<String>();
 
     @SuppressWarnings("unused")
     private int port;
@@ -31,11 +29,13 @@ public class GWackChannel {
         } catch (Exception e) {
             System.err.println(e);
         }
-        
+
     }
+
     public ArrayList<ClientThread> getConnectedClients() {
         return this.connectedClients;
     }
+
     // START_CLIENT_LIST\nJane\nJohn\nRavi\nEND_CLIENT_LIST
     public String getClientList() {
         String cList = "START_CLIENT_LIST";
@@ -47,8 +47,9 @@ public class GWackChannel {
     }
 
     public void addClient(ClientThread cT) {
-       this.connectedClients.add(cT);
+        this.connectedClients.add(cT);
     }
+
     // this works, maybe
     public void removeClients() {
         for (int i = 0; i < connectedClients.size(); i++) {
@@ -61,7 +62,7 @@ public class GWackChannel {
     public ServerSocket getServerSocket() {
         return this.serverSock;
     }
-    
+
     public Queue<String> getOutputQueue() {
         return this.outputQueue;
     }
@@ -75,7 +76,7 @@ public class GWackChannel {
                 System.out.println("New connection: " + clientSock.getRemoteSocketAddress());
 
                 // check secret key??
-                     // "SECRET" + "\n" + secretKey + "\n" + "NAME" + "\n" + this.gui.getGUIName()
+                // "SECRET" + "\n" + secretKey + "\n" + "NAME" + "\n" + this.gui.getGUIName()
                 // start the thread
                 ClientThread temp = new ClientThread(clientSock, this);
 
@@ -84,10 +85,11 @@ public class GWackChannel {
 
                 // continue looping
             } catch (Exception e) {
+                System.err.println(e);
+                e.printStackTrace();
             } // exit serve if exception
         }
     }
-
 
     public static void main(String[] args) {
         int port = Integer.valueOf(args[0]);

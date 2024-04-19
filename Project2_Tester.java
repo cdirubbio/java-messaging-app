@@ -13,14 +13,14 @@ public class Project2_Tester {
     ServerSocket serverSocket = null;
 
     try{
-        serverSocket = new ServerSocket(2030);
+        serverSocket = new ServerSocket(5000);
     }
     catch (Exception e) {
         System.err.print("Could not open serverSocket");
         e.printStackTrace();
     }
 
-    ClientNetworking c = new ClientNetworking("Jane", "localhost", 2030, null);
+    ClientNetworking c = new ClientNetworking("Jane", "localhost", 5000, null);
 
     assertEquals("/127.0.0.1", c.getSocket().getLocalAddress().toString());
     assertEquals(5000, c.getSocket().getPort());

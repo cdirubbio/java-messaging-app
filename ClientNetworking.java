@@ -40,6 +40,7 @@ public class ClientNetworking {
     public void disconnect() {
 
         try {
+            writeMsg("LOGOUT");
             pw.close();
             this.gui.f.setTitle("GWACK -- Slack Simulator (disconnected)");
             this.gui.messagesTextArea.setText("");
@@ -68,7 +69,6 @@ public class ClientNetworking {
             }
 
         } catch (Exception e) {
-            System.err.println("Cannot Connect in connect(port) method");
             System.err.println(e);
             e.printStackTrace();
             // NEED ERROR MODAL HERE this.gui.
@@ -120,6 +120,7 @@ public class ClientNetworking {
                     // Thread.sleep(100000);
                     String reply = in.readLine();// read a line from ther server
                     // if we switch control flow to updating client list
+                    
                     if (reply.contains("START_CLIENT_LIST")) {
                         String clientList = "";
                         while (!(clientList.contains("END_CLIENT"))) {
