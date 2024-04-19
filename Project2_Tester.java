@@ -1,6 +1,4 @@
-
 import org.junit.Test;
-
 import static org.junit.Assert.assertEquals;
 import java.util.*;
 import java.io.*;
@@ -15,17 +13,17 @@ public class Project2_Tester {
     ServerSocket serverSocket = null;
 
     try{
-        serverSocket = new ServerSocket(2021);
+        serverSocket = new ServerSocket(2030);
     }
     catch (Exception e) {
         System.err.print("Could not open serverSocket");
         e.printStackTrace();
     }
 
-    ClientNetworking c = new ClientNetworking("Jane", "localhost", 2021, null);
+    ClientNetworking c = new ClientNetworking("Jane", "localhost", 2030, null);
 
     assertEquals("/127.0.0.1", c.getSocket().getLocalAddress().toString());
-    assertEquals(2021, c.getSocket().getPort());
+    assertEquals(5000, c.getSocket().getPort());
 
     String line = "An exception happened.";
     try {

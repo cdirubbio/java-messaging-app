@@ -25,6 +25,8 @@ public class ClientNetworking {
         this.host = host;
         this.port = port;
         this.gui = gui;
+
+        connect(this.port);
     }
 
     public String getName() {
@@ -36,13 +38,13 @@ public class ClientNetworking {
     }
 
     public void disconnect() {
-        
+
         try {
             pw.close();
             this.gui.f.setTitle("GWACK -- Slack Simulator (disconnected)");
             this.gui.messagesTextArea.setText("");
             this.socket.close();
-            
+
         } catch (Exception e) {
         }
     }
@@ -57,15 +59,18 @@ public class ClientNetworking {
                 socket = sock;
                 pw = new PrintWriter(this.socket.getOutputStream());
                 sendInitialSecret();
-                this.gui.f.setTitle("GWACK -- Slack Simulator (connected)");
+                if (gui != null) {
+                    this.gui.f.setTitle("GWACK -- Slack Simulator (connected)");
+                }
                 netThread = new NetworkThread(sock);
-                
+
                 netThread.start();
             }
 
         } catch (Exception e) {
-            System.err.println("Cannot Connect");
-            // System.err.println(e);
+            System.err.println("Cannot Connect in connect(port) method");
+            System.err.println(e);
+            e.printStackTrace();
             // NEED ERROR MODAL HERE this.gui.
         }
         return sock;
@@ -76,7 +81,9 @@ public class ClientNetworking {
             pw.println(msg);
             pw.flush();
         } catch (Exception e) {
-            System.err.print("IOException -- writemsg");
+            System.err.print(e);
+            e.printStackTrace();
+            System.exit(1);
 
         }
     }
@@ -87,9 +94,8 @@ public class ClientNetworking {
 
     public void sendInitialSecret() {
         try {
-
             pw.println("SECRET" + "\n" + secretKey + "\n" + "NAME" + "\n" + this.getName());
-            pw.flush();
+            // pw.flush();
         } catch (Exception e) {
             System.err.print("IOException -- sendsecret");
             System.err.print(e);

@@ -1,7 +1,7 @@
 import java.awt.*;
 import javax.swing.*;
-import java.awt.event.*;
-import java.io.*;
+// import java.awt.event.*;
+// import java.io.*;
 
 public class GWackClientGUI extends JFrame {
     public JFrame f;
@@ -48,6 +48,7 @@ public class GWackClientGUI extends JFrame {
     public GWackClientGUI() {
         f = new JFrame("GWACK -- Slack Simulator (disconnected)");
         f.setSize(800, 355);
+        f.setDefaultCloseOperation(EXIT_ON_CLOSE);
         f.setLocation(220, 400);
 
         JPanel fullBorderPanel = new JPanel(new BorderLayout());
@@ -141,6 +142,7 @@ public class GWackClientGUI extends JFrame {
     }
 
     public static void main(String[] args) {
+        @SuppressWarnings("unused")
         GWackClientGUI clientGUI = new GWackClientGUI();
         // ClientNetworking cN = new ClientNetworking(clientGUI.getGUIName(),
         // clientGUI.getHost(), clientGUI.getPort(), clientGUI);

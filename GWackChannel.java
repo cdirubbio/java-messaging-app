@@ -17,16 +17,21 @@ public class GWackChannel {
 
     private ArrayList<ClientThread> connectedClients;
     private Queue<String> outputQueue;
+
+    @SuppressWarnings("unused")
     private int port;
+
     private ServerSocket serverSock;
 
     public GWackChannel(int port) {
         this.port = port;
+        connectedClients = new ArrayList<ClientThread>();
         try {
-            serverSock = new ServerSocket(port);
+            serverSock = new ServerSocket(this.port);
         } catch (Exception e) {
             System.err.println(e);
         }
+        
     }
     public ArrayList<ClientThread> getConnectedClients() {
         return this.connectedClients;
@@ -35,7 +40,7 @@ public class GWackChannel {
     public String getClientList() {
         String cList = "START_CLIENT_LIST";
         for (int i = 0; i < connectedClients.size(); i++) {
-            cList += "\n" + connectedClients.get(i).getName();
+            cList += "\n" + connectedClients.get(i).clientName;
         }
 
         return cList + "\nEND_CLIENT_LIST";
@@ -44,6 +49,7 @@ public class GWackChannel {
     public void addClient(ClientThread cT) {
        this.connectedClients.add(cT);
     }
+    // this works, maybe
     public void removeClients() {
         for (int i = 0; i < connectedClients.size(); i++) {
             if (connectedClients.get(i).valid == false) {
@@ -72,6 +78,7 @@ public class GWackChannel {
                      // "SECRET" + "\n" + secretKey + "\n" + "NAME" + "\n" + this.gui.getGUIName()
                 // start the thread
                 ClientThread temp = new ClientThread(clientSock, this);
+
                 addClient(temp);
                 temp.start();
 
