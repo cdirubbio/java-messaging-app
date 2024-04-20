@@ -6,7 +6,7 @@ public class ClientThread extends Thread {
     public String SECRET = "3c3c4ac618656ae32b7f3431e75f7b26b1a14a87";
     public Socket sock;
     public GWackChannel server;
-    public boolean valid;
+    public boolean valid = true;
     public PrintWriter pWriter = null;
     public BufferedReader bReader = null;
     public String clientName;
@@ -15,43 +15,47 @@ public class ClientThread extends Thread {
         this.sock = socket;
         this.server = serv;
 
-        try {
-            pWriter = new PrintWriter(sock.getOutputStream());
-            bReader = new BufferedReader(new InputStreamReader(sock.getInputStream()));
-
-        } catch (Exception e) {
-            System.err.println(e);
-            e.printStackTrace();
-        }
-
     }
 
     // TODO: fucking everything
     public void run() {
         try {
-            String in = bReader.readLine();
+            pWriter = new PrintWriter(sock.getOutputStream());
+            bReader = new BufferedReader(new InputStreamReader(sock.getInputStream()));
 
-            if (in == "SECRET") {
-                in = bReader.readLine(); // secret key
-                in = bReader.readLine(); // NAME
-                clientName = bReader.readLine();
+            while (true) {
+
+                String nextMessageToSend = this.server.getOutputQueue().poll();
+                if (nextMessageToSend != null) {
+                    server.broadcast(nextMessageToSend);
+                }
+                // String in = bReader.readLine();
+                String in = bReader.readLine();
+                if (in == null) {
+                    continue;
+                }
+                if (in.contains("SECRET")) {
+                    in = bReader.readLine(); // secret key
+                    in = bReader.readLine(); // NAME
+                    clientName = bReader.readLine(); // actual client name
+                    this.server.getOutputQueue().add(server.getClientList());
+                } else if (in.contains("LOGOUT")) {
+                    this.valid = false;
+                    System.out.println("IN LOGOUT THREAD - " + clientName);
+                    server.removeClients();
+                    pWriter.close();
+                    bReader.close();
+                    this.join();
+                    break;
+                } else {
+                    this.server.getOutputQueue().add("[" + clientName + "] " + in);
+                }
             }
-            // String in = bReader.readLine();
-            this.server.getOutputQueue().add(in);
-            broadcast("[" + clientName + "] " + in);
 
-            // String in = bReader.readLine();
-            // this.server.getOutputQueue().add(in);
         } catch (Exception e) {
             System.err.println(e);
             e.printStackTrace();
         }
 
-    }
-
-    public void broadcast(String msg) {
-        for (int i = 0; i < server.getConnectedClients().size(); i++) {
-            pWriter.println(msg);
-        }
     }
 }

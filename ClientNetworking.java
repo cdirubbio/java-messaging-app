@@ -54,9 +54,10 @@ public class ClientNetworking {
         Socket sock = null;
         try {
             sock = new Socket(this.host, port);
+            
             // send server the 4 required messages
             if (sock.isConnected()) {
-                System.out.println("CONNECTED");
+                // System.out.println("CONNECTED");
                 socket = sock;
                 pw = new PrintWriter(this.socket.getOutputStream());
                 sendInitialSecret();
@@ -64,8 +65,10 @@ public class ClientNetworking {
                     this.gui.f.setTitle("GWACK -- Slack Simulator (connected)");
                 }
                 netThread = new NetworkThread(sock);
+                
 
                 netThread.start();
+                System.out.println("in connect");
             }
 
         } catch (Exception e) {
@@ -95,7 +98,7 @@ public class ClientNetworking {
     public void sendInitialSecret() {
         try {
             pw.println("SECRET" + "\n" + secretKey + "\n" + "NAME" + "\n" + this.getName());
-            // pw.flush();
+            pw.flush();
         } catch (Exception e) {
             System.err.print("IOException -- sendsecret");
             System.err.print(e);
@@ -143,8 +146,3 @@ public class ClientNetworking {
     }
 }
 
-// a class named GWackClientGUI that represents the GUI and contains the main
-// method to display the GUI. You’ll also need to provide all methods required
-// by the unit tests.
-// a class named ClientNetworking that is used by the GUI to set up a connection
-// to the server and manages messages to and from the server.

@@ -54,7 +54,12 @@ public class GWackChannel {
     public void removeClients() {
         for (int i = 0; i < connectedClients.size(); i++) {
             if (connectedClients.get(i).valid == false) {
-                connectedClients.remove(i);
+                try {
+                    connectedClients.remove(i);
+                } catch (Exception e) {
+                    System.err.println(e);
+                }
+              
             }
         }
     }
@@ -74,12 +79,7 @@ public class GWackChannel {
                 // accept incoming connection
                 Socket clientSock = serverSock.accept();
                 System.out.println("New connection: " + clientSock.getRemoteSocketAddress());
-
-                // check secret key??
-                // "SECRET" + "\n" + secretKey + "\n" + "NAME" + "\n" + this.gui.getGUIName()
-                // start the thread
                 ClientThread temp = new ClientThread(clientSock, this);
-
                 addClient(temp);
                 temp.start();
 
@@ -91,6 +91,13 @@ public class GWackChannel {
         }
     }
 
+    public void broadcast(String msg) {
+        for (int i = 0; i < getConnectedClients().size(); i++) {
+            getConnectedClients().get(i).pWriter.println(msg);
+            getConnectedClients().get(i).pWriter.flush();
+            // System.out.println(msg);
+        }
+    }
     public static void main(String[] args) {
         int port = Integer.valueOf(args[0]);
         GWackChannel server = new GWackChannel(port);

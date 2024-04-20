@@ -117,9 +117,9 @@ public class GWackClientGUI extends JFrame {
         // Action Listeners
         connOrDisconnButton.addActionListener((e) -> {
             if (connOrDisconnButton.getText().equals("Connect")) {
-                cN = new ClientNetworking(this.getGUIName(), this.getHost(), this.getPort(), this);
+                
                 try {
-                    cN.connect(this.getPort());
+                    cN = new ClientNetworking(this.getGUIName(), this.getHost(), this.getPort(), this);
                     connOrDisconnButton.setText("Disconnect");
                 } catch (Exception err) {
                 }
@@ -144,6 +144,7 @@ public class GWackClientGUI extends JFrame {
     public static void main(String[] args) {
         @SuppressWarnings("unused")
         GWackClientGUI clientGUI = new GWackClientGUI();
+        
         // ClientNetworking cN = new ClientNetworking(clientGUI.getGUIName(),
         // clientGUI.getHost(), clientGUI.getPort(), clientGUI);
         // You will use the Print writer code to do the following things:

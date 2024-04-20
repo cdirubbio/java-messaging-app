@@ -13,18 +13,19 @@ public class Project2_Tester {
     ServerSocket serverSocket = null;
 
     try{
-        serverSocket = new ServerSocket(5000);
+        serverSocket = new ServerSocket(2020);
+        System.out.println("in 1");
     }
     catch (Exception e) {
         System.err.print("Could not open serverSocket");
         e.printStackTrace();
     }
-
-    ClientNetworking c = new ClientNetworking("Jane", "localhost", 5000, null);
-
+    System.out.println("in 2");
+    ClientNetworking c = new ClientNetworking("Jane", "localhost", 2020, null);
+    System.out.println("in 3");
     assertEquals("/127.0.0.1", c.getSocket().getLocalAddress().toString());
-    assertEquals(5000, c.getSocket().getPort());
-
+    assertEquals(2020, c.getSocket().getPort());
+    
     String line = "An exception happened.";
     try {
         Socket remote = serverSocket.accept();
@@ -35,6 +36,8 @@ public class Project2_Tester {
         line += incoming.readLine();
     }
     catch (Exception e){
+        System.err.println(e);
+        e.printStackTrace();
     }
     assertEquals("SECRET3c3c4ac618656ae32b7f3431e75f7b26b1a14a87NAMEJane", line);
 
@@ -279,7 +282,8 @@ public class Project2_Tester {
         
         cN1.writeMsg("red");
         Thread.sleep(500);
-
+        System.out.println("DO PEEK");
+        System.out.println(server.getOutputQueue().peek());
         assertEquals(0, server.getOutputQueue().size());
 
         cN1.writeMsg("LOGOUT");
@@ -319,6 +323,7 @@ public class Project2_Tester {
         Thread.sleep(500);
             
         String[] pieces = gui1.getDisplayTextArea().getText().split("\n");
+        System.out.println(Arrays.toString(pieces));
         assertEquals("[Jane] green", pieces[pieces.length - 1]);
         assertEquals("[Jane] yellow", pieces[pieces.length - 2]);
         assertEquals("[Jane] red", pieces[pieces.length - 3]);
@@ -363,6 +368,8 @@ public class Project2_Tester {
         Thread.sleep(500);
 
         String[] pieces = gui1.getDisplayTextArea().getText().split("\n");
+        System.out.println("In 10");
+        System.out.println(gui1.getDisplayTextArea().getText());
         assertEquals("[John] blue", pieces[pieces.length - 1]);
         assertEquals("[Jane] pink", pieces[pieces.length - 2]);
         assertEquals("[Jane] green", pieces[pieces.length - 3]);
