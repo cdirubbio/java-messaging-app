@@ -315,7 +315,7 @@ public class Project2_Tester {
         cN1.writeMsg("red");
         cN1.writeMsg("yellow");
         cN1.writeMsg("green");
-        Thread.sleep(5000);
+        Thread.sleep(1000);
             
         String[] pieces = gui1.getDisplayTextArea().getText().split("\n");
         System.out.println(Arrays.toString(pieces));

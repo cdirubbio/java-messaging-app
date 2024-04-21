@@ -124,7 +124,12 @@ public class GWackClientGUI extends JFrame {
         connOrDisconnButton.addActionListener((e) -> {
             if (connOrDisconnButton.getText().equals("Connect")) {
                 try {
-                    cN = new ClientNetworking(this.getGUIName(), this.getHost(), this.getPort(), this);
+                    if (this.getPort() != 0) {
+                        cN = new ClientNetworking(this.getGUIName(), this.getHost(), this.getPort(), this);
+                    } else {
+                        showErrorMessage();
+                    }
+                   
                     
                 } catch (Exception err) {
                     showErrorMessage();
