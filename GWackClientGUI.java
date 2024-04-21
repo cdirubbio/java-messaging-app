@@ -44,6 +44,12 @@ public class GWackClientGUI extends JFrame {
         currentMessages += message + "\n";
         messagesTextArea.setText(currentMessages);
     }
+    public void showErrorMessage() {
+        JOptionPane.showMessageDialog(f,
+    "Cannot Connect",
+    "Connection Error",
+    JOptionPane.ERROR_MESSAGE);
+    }
 
     public GWackClientGUI() {
         f = new JFrame("GWACK -- Slack Simulator (disconnected)");
@@ -117,12 +123,16 @@ public class GWackClientGUI extends JFrame {
         // Action Listeners
         connOrDisconnButton.addActionListener((e) -> {
             if (connOrDisconnButton.getText().equals("Connect")) {
-                
                 try {
                     cN = new ClientNetworking(this.getGUIName(), this.getHost(), this.getPort(), this);
-                    connOrDisconnButton.setText("Disconnect");
+                    
                 } catch (Exception err) {
+                    showErrorMessage();
                 }
+                if (cN.getSocket().isConnected()) {
+                    connOrDisconnButton.setText("Disconnect");
+                }
+                
             } else if (connOrDisconnButton.getText().equals("Disconnect")) {
                 try {
                     cN.disconnect();
@@ -142,14 +152,8 @@ public class GWackClientGUI extends JFrame {
     }
 
     public static void main(String[] args) {
-        @SuppressWarnings("unused")
         GWackClientGUI clientGUI = new GWackClientGUI();
         
-        // ClientNetworking cN = new ClientNetworking(clientGUI.getGUIName(),
-        // clientGUI.getHost(), clientGUI.getPort(), clientGUI);
-        // You will use the Print writer code to do the following things:
-        // Gotrta send the secret,
-        // And send the messages
     }
 
 }

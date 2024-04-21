@@ -17,19 +17,18 @@ public class ClientThread extends Thread {
 
     }
 
-    // TODO: fucking everything
+    // TODO: somethin broke?
     public void run() {
         try {
             pWriter = new PrintWriter(sock.getOutputStream());
             bReader = new BufferedReader(new InputStreamReader(sock.getInputStream()));
 
             while (true) {
-
-                String nextMessageToSend = this.server.getOutputQueue().poll();
-                if (nextMessageToSend != null) {
-                    server.broadcast(nextMessageToSend);
+                server.sendOutNextMessage();
+                if (this.sock.isConnected() == false) {
+                    sock.close();
+                    return;
                 }
-                // String in = bReader.readLine();
                 String in = bReader.readLine();
                 if (in == null) {
                     continue;
@@ -38,15 +37,10 @@ public class ClientThread extends Thread {
                     in = bReader.readLine(); // secret key
                     in = bReader.readLine(); // NAME
                     clientName = bReader.readLine(); // actual client name
-                    this.server.getOutputQueue().add(server.getClientList());
+
                 } else if (in.contains("LOGOUT")) {
-                    this.valid = false;
-                    System.out.println("IN LOGOUT THREAD - " + clientName);
-                    server.removeClients();
-                    pWriter.close();
-                    bReader.close();
-                    this.join();
-                    break;
+                    logoutProcess();
+                    return;
                 } else {
                     this.server.getOutputQueue().add("[" + clientName + "] " + in);
                 }
@@ -55,6 +49,19 @@ public class ClientThread extends Thread {
         } catch (Exception e) {
             System.err.println(e);
             e.printStackTrace();
+        }
+
+    }
+
+    private void logoutProcess() {
+        this.valid = false;
+        server.removeClients();
+        try {
+            pWriter.close();
+            bReader.close();
+            this.join();
+            this.sock.close();
+        } catch (Exception e) {
         }
 
     }

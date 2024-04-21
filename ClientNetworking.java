@@ -29,15 +29,15 @@ public class ClientNetworking {
         connect(this.port);
     }
 
-    public String getName() {
+    public synchronized String getName() {
         return this.name;
     }
 
-    public Socket getSocket() {
+    public synchronized Socket getSocket() {
         return this.socket;
     }
 
-    public void disconnect() {
+    public synchronized void disconnect() {
 
         try {
             writeMsg("LOGOUT");
@@ -50,14 +50,11 @@ public class ClientNetworking {
         }
     }
 
-    public Socket connect(int port) {
+    public synchronized Socket connect(int port) {
         Socket sock = null;
         try {
             sock = new Socket(this.host, port);
-            
-            // send server the 4 required messages
             if (sock.isConnected()) {
-                // System.out.println("CONNECTED");
                 socket = sock;
                 pw = new PrintWriter(this.socket.getOutputStream());
                 sendInitialSecret();
@@ -65,33 +62,30 @@ public class ClientNetworking {
                     this.gui.f.setTitle("GWACK -- Slack Simulator (connected)");
                 }
                 netThread = new NetworkThread(sock);
-                
-
+                netThread.cN = this;
                 netThread.start();
-                System.out.println("in connect");
             }
 
         } catch (Exception e) {
             System.err.println(e);
             e.printStackTrace();
-            // NEED ERROR MODAL HERE this.gui.
+            this.gui.showErrorMessage();
         }
         return sock;
     }
 
-    public void writeMsg(String msg) {
+    public synchronized void writeMsg(String msg) {
         try {
             pw.println(msg);
             pw.flush();
         } catch (Exception e) {
             System.err.print(e);
             e.printStackTrace();
-            System.exit(1);
 
         }
     }
 
-    public PrintWriter getOut() {
+    public synchronized PrintWriter getOut() {
         return this.pw;
     }
 
@@ -108,39 +102,54 @@ public class ClientNetworking {
     private class NetworkThread extends Thread {
         public BufferedReader in;
         private Socket socket;
+        public ClientNetworking cN;
+       
 
         public NetworkThread(Socket socket) {
             this.socket = socket;
         }
 
-        // This is fine, sometimes
+
         public void run() {
             try {
-                if (this.socket.isConnected()) {
-                    in = new BufferedReader(new InputStreamReader(this.socket.getInputStream()));
+                if (!this.socket.isConnected()) {
+                    this.socket.close();
+                    return;
                 }
-                while (this.socket.isConnected()) {
+                in = new BufferedReader(new InputStreamReader(this.socket.getInputStream()));
+                while (true) {
+                    if (this.socket.isConnected() == false) {
+                        socket.close();
+                        return;
+                    }
                     // Thread.sleep(100000);
+                    if (!in.ready()) {
+                        continue;
+                    }
                     String reply = in.readLine();// read a line from ther server
                     // if we switch control flow to updating client list
-                    
                     if (reply.contains("START_CLIENT_LIST")) {
                         String clientList = "";
-                        while (!(clientList.contains("END_CLIENT"))) {
+                        while (true) {
                             reply = in.readLine();
-                            System.out.println(reply);
-                            clientList += reply + "\n";
+                            if (reply.contains("END")) {
+                                break;
+                            }
+                            clientList += reply +"\n";
                         }
-                        clientList = clientList.substring(0, clientList.length() - 16);
-                        gui.membersTextArea.setText(clientList);
-                        continue;
+                        if (cN.gui != null) {
+                            cN.gui.membersTextArea.setText(clientList);
+                        }
                     } else {
                         System.out.println(reply);
-                        gui.appendNewMessage(reply);
+                        if (this.cN.gui != null) {
+                            cN.gui.appendNewMessage(reply);
+                        }
                     }
                 }
             } catch (Exception e) {
                 System.err.print(e);
+                e.printStackTrace();
             }
         }
     }

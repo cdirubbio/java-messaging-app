@@ -14,15 +14,12 @@ public class Project2_Tester {
 
     try{
         serverSocket = new ServerSocket(2020);
-        System.out.println("in 1");
     }
     catch (Exception e) {
         System.err.print("Could not open serverSocket");
         e.printStackTrace();
     }
-    System.out.println("in 2");
     ClientNetworking c = new ClientNetworking("Jane", "localhost", 2020, null);
-    System.out.println("in 3");
     assertEquals("/127.0.0.1", c.getSocket().getLocalAddress().toString());
     assertEquals(2020, c.getSocket().getPort());
     
@@ -282,8 +279,6 @@ public class Project2_Tester {
         
         cN1.writeMsg("red");
         Thread.sleep(500);
-        System.out.println("DO PEEK");
-        System.out.println(server.getOutputQueue().peek());
         assertEquals(0, server.getOutputQueue().size());
 
         cN1.writeMsg("LOGOUT");
@@ -320,7 +315,7 @@ public class Project2_Tester {
         cN1.writeMsg("red");
         cN1.writeMsg("yellow");
         cN1.writeMsg("green");
-        Thread.sleep(500);
+        Thread.sleep(5000);
             
         String[] pieces = gui1.getDisplayTextArea().getText().split("\n");
         System.out.println(Arrays.toString(pieces));
@@ -368,8 +363,6 @@ public class Project2_Tester {
         Thread.sleep(500);
 
         String[] pieces = gui1.getDisplayTextArea().getText().split("\n");
-        System.out.println("In 10");
-        System.out.println(gui1.getDisplayTextArea().getText());
         assertEquals("[John] blue", pieces[pieces.length - 1]);
         assertEquals("[Jane] pink", pieces[pieces.length - 2]);
         assertEquals("[Jane] green", pieces[pieces.length - 3]);

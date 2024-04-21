@@ -16,7 +16,6 @@ public class GWackChannel {
     private ArrayList<ClientThread> connectedClients;
     private Queue<String> outputQueue = new PriorityQueue<String>();
 
-    @SuppressWarnings("unused")
     private int port;
 
     private ServerSocket serverSock;
@@ -32,26 +31,26 @@ public class GWackChannel {
 
     }
 
-    public ArrayList<ClientThread> getConnectedClients() {
+    public synchronized ArrayList<ClientThread> getConnectedClients() {
         return this.connectedClients;
     }
 
     // START_CLIENT_LIST\nJane\nJohn\nRavi\nEND_CLIENT_LIST
-    public String getClientList() {
+    public synchronized String getClientList() {
         String cList = "START_CLIENT_LIST";
         for (int i = 0; i < connectedClients.size(); i++) {
             cList += "\n" + connectedClients.get(i).clientName;
         }
-
-        return cList + "\nEND_CLIENT_LIST";
+        cList += "\nEND_CLIENT_LIST";
+        return cList;
     }
 
-    public void addClient(ClientThread cT) {
+    public synchronized void addClient(ClientThread cT) {
         this.connectedClients.add(cT);
     }
 
     // this works, maybe
-    public void removeClients() {
+    public synchronized void removeClients() {
         for (int i = 0; i < connectedClients.size(); i++) {
             if (connectedClients.get(i).valid == false) {
                 try {
@@ -64,11 +63,11 @@ public class GWackChannel {
         }
     }
 
-    public ServerSocket getServerSocket() {
+    public synchronized ServerSocket getServerSocket() {
         return this.serverSock;
     }
 
-    public Queue<String> getOutputQueue() {
+    public synchronized Queue<String> getOutputQueue() {
         return this.outputQueue;
     }
 
@@ -77,21 +76,25 @@ public class GWackChannel {
             try {
                 arg--;
                 // accept incoming connection
-                Socket clientSock = serverSock.accept();
-                System.out.println("New connection: " + clientSock.getRemoteSocketAddress());
+                Socket clientSock = serverSock.accept();               
                 ClientThread temp = new ClientThread(clientSock, this);
                 addClient(temp);
                 temp.start();
-
-                // continue looping
             } catch (Exception e) {
                 System.err.println(e);
                 e.printStackTrace();
-            } // exit serve if exception
+            } 
         }
     }
 
-    public void broadcast(String msg) {
+    public synchronized void sendOutNextMessage() {
+        String nextMessageToSend = getOutputQueue().poll();
+        if (nextMessageToSend != null) {
+            broadcast(nextMessageToSend);
+        }
+    }
+    
+    public synchronized void broadcast(String msg) {
         for (int i = 0; i < getConnectedClients().size(); i++) {
             getConnectedClients().get(i).pWriter.println(msg);
             getConnectedClients().get(i).pWriter.flush();
